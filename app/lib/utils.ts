@@ -22,3 +22,7 @@ export function formatSize(bytes: number, decimals: number = 2): string {
 
   return `${value} ${sizes[i]}`;
 }
+
+export function generateUUID () {
+  return crypto.randomUUID();
+}
