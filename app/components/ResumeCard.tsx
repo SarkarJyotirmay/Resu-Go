@@ -1,13 +1,26 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
 import ScoreCircle from "./ScoreCircle";
 import { resume } from "react-dom/server";
+import { usePuterStore } from "~/lib/puter";
 
 const ResumeCard = ({
   resume: { id, companyName, jobTitle, feedback, imagePath },
 }: {
   resume: Resume;
 }) => {
+  const { auth, fs } = usePuterStore();
+  const [resumeUrl, setResumeUrl] = useState("");
+  useEffect(() => {
+    const loadresumes = async () => {
+      const blob = await fs.read(imagePath);
+      if (!blob) return;
+      let url = URL.createObjectURL(blob);
+      setResumeUrl(url);
+    };
+
+    loadresumes();
+  }, [imagePath]);
   return (
     <Link
       to={`/resume/${id}`}
@@ -15,21 +28,39 @@ const ResumeCard = ({
     >
       <div className="resume-card-header">
         <div className="flex flex-col gap-2">
-          <h2 className="!text-black font-bold wrap-break-word">
-            {companyName}
-          </h2>
-          <h3 className="text-lg wrap-break-word text-gray-500">{jobTitle}</h3>
+          {companyName && (
+            <h2 className="!text-black font-bold wrap-break-word">
+              {companyName}
+            </h2>
+          )}
+          {jobTitle && (
+            <h3 className="text-lg wrap-break-word text-gray-500">
+              {jobTitle}
+            </h3>
+          )}
+          {
+            !companyName && !jobTitle && (
+              <h2 className="text-black font-bold">RESUME</h2>
+            )
+          }
         </div>
         <div className="shrink-0">
           <ScoreCircle score={feedback.overallScore} />
         </div>
       </div>
 
-      <div className="gradient-border animate-in fade-in duration-1000">
+      {
+        resumeUrl &&
+        <div className="gradient-border animate-in fade-in duration-1000">
         <div className="w-full h-[240px] sm:h-[300px] overflow-auto">
-            <img src={imagePath} alt="resume" className="w-full   object-cover object-top" />
+          <img
+            src={resumeUrl}
+            alt="resume"
+            className="w-full   object-cover object-top"
+          />
         </div>
       </div>
+      }
     </Link>
   );
 };
